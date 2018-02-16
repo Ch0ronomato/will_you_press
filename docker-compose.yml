@@ -1,0 +1,22 @@
+version: "3"
+services:
+  master:
+    build:
+      context: .
+      dockerfile: Dockerfile_master
+  node1.will_you_press_etl:
+    build: .
+    ports:
+      - "5101:5000"
+  node2.will_you_press_etl:
+    build: .
+    ports:
+      - "5102:5000"
+  node3.will_you_press_etl:
+    build: .
+    ports:
+      - "5103:5000"
+  node4.will_you_press_etl:
+    build: .
+    ports:
+      - "5104:5000"
