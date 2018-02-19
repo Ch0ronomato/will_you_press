@@ -1,0 +1,12 @@
+FROM postgres:10
+
+WORKDIR /app
+
+EXPOSE 5432
+
+ENV POSTGRES_USER ian
+ENV POSTGRES_PASSWORD ian
+ENV POSTGRES_DB will_you_press
+
+COPY config/init.sql /docker-entrypoint-initdb.d/init.sql
+CMD ["postgres"]
