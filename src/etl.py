@@ -5,7 +5,7 @@ from nltk.collocations import *
 from nltk.stem.porter import *
 from nltk.corpus import stopwords
 from math import ceil
-from flask import Flask
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
@@ -26,14 +26,16 @@ def getQuestionStats(i):
 
     stemmer = PorterStemmer()
     stop = set(stopwords.words('english'))
-    dilema_stems = [stemmer.stem(word) for word in question_bs.find(id="cond").text.strip().split() \
+    cond_text = question_bs.find(id="cond").text.strip()
+    res_text = question_bs.find(id="res").text.strip()
+    dilemma_stems = [stemmer.stem(word) for word in cond_text.split() \
         if not word in stop]
-    result_stems = [stemmer.stem(word) for word in question_bs.find(id="res").text.strip().split() \
+    result_stems = [stemmer.stem(word) for word in res_text.split() \
         if not word in stop]
-    total_stems = list(set(dilema_stems + result_stems))
+    total_stems = list(set(dilemma_stems + result_stems))
 
-    dilema_collocator = BigramCollocationFinder.from_words(dilema_stems)
-    dilema_bigrams = dilema_collocator.nbest(bigram_measures.pmi, 10)
+    dilemma_collocator = BigramCollocationFinder.from_words(dilemma_stems)
+    dilemma_bigrams = dilemma_collocator.nbest(bigram_measures.pmi, 10)
 
     res_collocator = BigramCollocationFinder.from_words(result_stems)
     res_bigrams = res_collocator.nbest(bigram_measures.pmi, 10)
@@ -50,18 +52,28 @@ def getQuestionStats(i):
     yes_percentage = int(yes_stats.text.split()[1].strip("()%")) / 100.
     total_answers = ceil(yes_numbers / yes_percentage)
 
-    return """
-    total numbers: {0}
-    total yeses: {1}
-    dilema bigrams: {2}
-    res bigrams: {3}
-    total bigrams: {4}
-    """.format( \
-        total_answers, \
-        yes_numbers, \
-        dilema_bigrams, \
-        res_bigrams, \
-        total_bigrams)
+    return jsonify({
+        "text": cond_text + res_text,
+        "total": total_answers,
+        "yeses": yes_numbers,
+        "bigrams": {
+            "result": res_bigrams,
+            "dilemma": dilema_bigrams,
+            "total": total_bigrams
+        }
+    })
+    # return """
+    # total numbers: {0}
+    # total yeses: {1}
+    # dilema bigrams: {2}
+    # res bigrams: {3}
+    # total bigrams: {4}
+    # """.format( \
+    #     total_answers, \
+    #     yes_numbers, \
+    #     dilema_bigrams, \
+    #     res_bigrams, \
+    #     total_bigrams)
 
 if __name__ == "__main__":
     print("running server...")
